@@ -9,6 +9,7 @@ import Footer from "@/components/footer";
 import { Award, Truck, Shield, Star, ArrowUp } from "lucide-react";
 import ProfileCard from "@/components/ProfileCard";
 import { motion, useScroll, useTransform, Variants } from "framer-motion";
+import useEmblaCarousel from "embla-carousel-react";
 
 // ✅ Scroll to Top Button
 function ScrollToTop() {
@@ -72,10 +73,7 @@ const fadeInUp: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.25, 0.46, 0.45, 0.94],
-    },
+    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 };
 
@@ -83,18 +81,80 @@ const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.1,
-    },
+    transition: { staggerChildren: 0.15, delayChildren: 0.1 },
   },
 };
 
+// ✅ Team Section (Carousel on mobile, grid on desktop)
+function TeamSection() {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center" });
+
+  // Auto-play
+  useEffect(() => {
+    if (!emblaApi) return;
+    const interval = setInterval(() => emblaApi.scrollNext(), 2000);
+    return () => clearInterval(interval);
+  }, [emblaApi]);
+
+  return (
+    <section className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Heading */}
+        <motion.div
+          className="text-center mb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.3 }}
+          variants={fadeInUp}
+        >
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Meet Our Team
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Passionate individuals working together to create extraordinary
+            experiences
+          </p>
+        </motion.div>
+
+        {/* 👉 Mobile Carousel */}
+        <div className="block md:hidden">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex">
+              {teamMembers.map((member) => (
+                <div key={member.name} className="flex-[0_0_100%] px-4">
+                  <ProfileCard {...member} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 👉 Desktop Grid */}
+        <motion.div
+          className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.2 }}
+          variants={staggerContainer}
+        >
+          {teamMembers.map((member) => (
+            <motion.div
+              key={member.name}
+              variants={fadeInUp}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+            >
+              <ProfileCard {...member} />
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const { scrollY } = useScroll();
-
-  // ✅ Subtle parallax for Hero
-  const heroY = useTransform(scrollY, [0, 500], [0, -50]);
+  const heroY = useTransform(scrollY, [0, 500], [0, -50]); // subtle parallax
 
   return (
     <div className="min-h-screen bg-white">
@@ -105,29 +165,30 @@ export default function HomePage() {
         <Hero />
       </motion.div>
 
-      {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      {/* ✅ Features Section (Compact Version on Mobile) */}
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-12"
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: false, amount: 0.3 }} // 👈 replay animation
+            viewport={{ once: false, amount: 0.3 }}
             variants={fadeInUp}
           >
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
               Why Choose Us
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We deliver exceptional quality and service that exceeds expectations
+            <p className="text-sm md:text-lg text-gray-600 max-w-2xl mx-auto">
+              We deliver exceptional quality and service that exceeds
+              expectations
             </p>
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-4 gap-8"
+            className="grid grid-cols-2 md:grid-cols-4 gap-6"
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: false, amount: 0.2 }} // 👈 replay
+            viewport={{ once: false, amount: 0.2 }}
             variants={staggerContainer}
           >
             {[
@@ -162,20 +223,19 @@ export default function HomePage() {
             ].map((item) => (
               <motion.div
                 key={item.title}
-                className="text-center space-y-4 p-6 rounded-xl bg-white shadow-sm hover:shadow-md border border-gray-100"
+                className="text-center space-y-2 p-4 rounded-lg bg-white shadow-sm hover:shadow-md border border-gray-100"
                 variants={fadeInUp}
-                whileHover={{
-                  y: -4,
-                  transition: { duration: 0.2 },
-                }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
               >
                 <div
-                  className={`w-16 h-16 ${item.bg} rounded-xl flex items-center justify-center mx-auto`}
+                  className={`w-12 h-12 ${item.bg} rounded-lg flex items-center justify-center mx-auto`}
                 >
-                  <item.icon className={`h-8 w-8 ${item.color}`} />
+                  <item.icon className={`h-6 w-6 ${item.color}`} />
                 </div>
-                <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  {item.title}
+                </h3>
+                <p className="text-xs text-gray-600 leading-relaxed">
                   {item.desc}
                 </p>
               </motion.div>
@@ -184,52 +244,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            className="text-center mb-16"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, amount: 0.3 }} // 👈 replay
-            variants={fadeInUp}
-          >
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Meet Our Team
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Passionate individuals working together to create extraordinary
-              experiences
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, amount: 0.2 }} // 👈 replay
-            variants={staggerContainer}
-          >
-            {teamMembers.map((member) => (
-              <motion.div
-                key={member.name}
-                variants={fadeInUp}
-                whileHover={{
-                  y: -8,
-                  transition: { duration: 0.3 },
-                }}
-              >
-                <ProfileCard
-                  role={member.role}
-                  name={member.name}
-                  quote={member.quote}
-                  image={member.image}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {/* ✅ Team Section with Carousel */}
+      <TeamSection />
 
       <Testimonials />
       <SocialProof />

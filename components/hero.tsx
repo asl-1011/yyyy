@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import TypewriterText from "@/components/TypewriterText";
 import { Playfair_Display, Dancing_Script, Inter } from "next/font/google";
@@ -46,16 +46,16 @@ const Hero = () => {
 
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button
-            variant="hero"
-            size="lg"
-            onClick={scrollToProducts}
-            className="text-lg px-8 py-3"
-          >
-            Shop Now
-          </Button>
-          
-        </div>
+  <Link href="/shop">
+    <Button
+      variant="hero"
+      size="lg"
+      className="text-lg px-8 py-3"
+    >
+      Shop Now
+    </Button>
+  </Link>
+</div>
       </div>
     </section>
   );

@@ -212,7 +212,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 Add to Cart
               </Button>
             ) : (
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-2">
                 {/* Quantity controls */}
                 <div className="flex items-center bg-muted/50 rounded-lg sm:rounded-xl overflow-hidden border border-border/30">
                   <Button
@@ -237,15 +237,6 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                     <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
-
-                {/* Buy Now (hidden on xs) */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hidden sm:flex flex-1 text-xs sm:text-sm h-8 sm:h-10 rounded-lg sm:rounded-xl border-primary/30 hover:bg-primary hover:text-primary-foreground font-medium"
-                >
-                  Buy Now
-                </Button>
               </div>
             )}
           </div>

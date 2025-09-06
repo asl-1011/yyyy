@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Search, Menu, Leaf, X, ShoppingBag, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,21 +10,25 @@ import { AuthStatus } from "@/components/auth-status"
 import { useCart } from "./cart-context"
 import { CartSidebar } from "@/components/cart-sidebar"
 import { LocationModal } from "@/components/LocationModal"
-
-// 1. Import hooks for session and navigation
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 export function Navigation() {
-  // 2. Get session status and router instance
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const pathname = usePathname()
 
+  const { cart, cartOpen, setCartOpen, updateQuantity } = useCart()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [locationModalOpen, setLocationModalOpen] = useState(false)
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState("Select your location")
-  const pathname = usePathname()
-  const { cart, cartOpen, setCartOpen, updateQuantity } = useCart()
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -57,26 +61,20 @@ export function Navigation() {
     setSelectedLocation(location)
     setLocationModalOpen(false)
   }
-  
-  // 3. Create a centralized handler for the location button click
+
+  // --- Location button handler ---
   const handleLocationClick = () => {
-    // If the session status is still being determined, do nothing.
-    if (status === "loading") {
-      return;
-    }
+    if (status === "loading") return
 
-    // If the user is not authenticated, redirect them to the sign-in page.
     if (status === "unauthenticated") {
-      router.push("/signin"); // <-- IMPORTANT: Change this to your actual sign-in route
-      return;
+      setLoginModalOpen(true)
+      return
     }
 
-    // If the user is authenticated, open the location modal.
     if (status === "authenticated") {
-      setLocationModalOpen(true);
+      setLocationModalOpen(true)
     }
-  };
-
+  }
 
   return (
     <>
@@ -103,15 +101,18 @@ export function Navigation() {
 
             {/* Desktop Location Selector */}
             <div className="hidden md:flex items-center mr-4">
-              {/* 4. Use the new handler and add a disabled state */}
               <button
                 onClick={handleLocationClick}
-                disabled={status === 'loading'}
+                disabled={status === "loading"}
                 className="flex items-center space-x-2 px-3 py-2 bg-muted/50 rounded-full hover:bg-muted/70 transition disabled:opacity-50"
               >
                 <MapPin className="h-4 w-4 text-emerald-600" />
                 <span className="text-sm font-medium truncate max-w-[150px]">
-                  {status === 'loading' ? 'Loading...' : selectedLocation}
+                  {status === "loading"
+                    ? "Loading..."
+                    : status === "authenticated"
+                    ? selectedLocation
+                    : "Login to select location"}
                 </span>
               </button>
             </div>
@@ -119,13 +120,16 @@ export function Navigation() {
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8 ml-6">
               {navLinks.map((link) => {
-                const isActive = pathname === link.href || pathname.startsWith(link.href + "?")
+                const isActive =
+                  pathname === link.href || pathname.startsWith(link.href + "?")
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     className={`relative font-medium transition-colors duration-300 ${
-                      isActive ? "text-emerald-600" : "text-foreground/80 hover:text-foreground"
+                      isActive
+                        ? "text-emerald-600"
+                        : "text-foreground/80 hover:text-foreground"
                     } group`}
                   >
                     {link.label}
@@ -170,17 +174,14 @@ export function Navigation() {
 
               {/* Mobile buttons */}
               <div className="md:hidden flex items-center space-x-2">
-                {/* Location button always visible */}
-                {/* 4. Use the new handler and add a disabled state here too */}
                 <button
                   onClick={handleLocationClick}
-                  disabled={status === 'loading'}
+                  disabled={status === "loading"}
                   className="relative p-2 rounded-full hover:bg-muted/50 transition disabled:opacity-50"
                 >
                   <MapPin className="h-5 w-5 text-emerald-600" />
                 </button>
 
-                {/* Cart button */}
                 <button
                   onClick={() => setCartOpen(true)}
                   className="relative p-2 rounded-full hover:bg-muted/50 transition"
@@ -193,7 +194,6 @@ export function Navigation() {
                   )}
                 </button>
 
-                {/* Mobile menu toggle */}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -203,7 +203,6 @@ export function Navigation() {
                   {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
 
-                {/* Optional mobile search */}
                 <Button variant="ghost" size="sm" className="hover:bg-muted/50 rounded-full p-2">
                   <Search className="h-5 w-5" />
                 </Button>
@@ -221,13 +220,16 @@ export function Navigation() {
           <div className="container mx-auto px-4 py-6 flex flex-col justify-start h-full">
             <nav className="flex flex-col space-y-4 text-lg">
               {navLinks.map((link) => {
-                const isActive = pathname === link.href || pathname.startsWith(link.href + "?")
+                const isActive =
+                  pathname === link.href || pathname.startsWith(link.href + "?")
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     className={`font-medium transition-colors duration-300 ${
-                      isActive ? "text-emerald-600" : "text-foreground/80 hover:text-foreground"
+                      isActive
+                        ? "text-emerald-600"
+                        : "text-foreground/80 hover:text-foreground"
                     }`}
                     onClick={() => setMobileOpen(false)}
                   >
@@ -246,8 +248,33 @@ export function Navigation() {
       {/* Cart Sidebar */}
       <CartSidebar deliveryLocation={selectedLocation} />
 
-      {/* 5. Conditionally render the modal to avoid mounting it for logged-out users */}
-      {status === 'authenticated' && (
+      {/* Login Required Modal */}
+      <Dialog open={loginModalOpen} onOpenChange={setLoginModalOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Login Required</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            You need to log in to select a delivery location.
+          </p>
+          <DialogFooter className="flex justify-end space-x-2 mt-4">
+            <Button variant="outline" onClick={() => setLoginModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setLoginModalOpen(false)
+                router.push("/login")
+              }}
+            >
+              Login
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Location Modal */}
+      {status === "authenticated" && (
         <LocationModal
           isOpen={locationModalOpen}
           onClose={() => setLocationModalOpen(false)}

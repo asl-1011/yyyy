@@ -16,37 +16,33 @@ export const authOptions: NextAuthOptions = {
 
         try {
           await dbConnect()
-          const user = await User.findOne({ email: credentials.email }).select(
-            "+password", // ✅ explicitly request password
-          ) as IUser | null
-
+          const user = await User.findOne({ email: credentials.email }).select("+password") as IUser | null
           if (!user) return null
 
           const isPasswordValid = await user.comparePassword(credentials.password)
           if (!isPasswordValid) return null
 
           return {
-            id: user._id.toString(), // ✅ safe now
+            id: user._id.toString(),
             email: user.email,
             name: user.name,
-            role: user.role, // ✅ enforced by schema
+            role: user.role,
           }
         } catch (error) {
-          console.error("Auth error:", error)
+          console.error("Auth error:", error instanceof Error ? error.message : error)
           return null
         }
       },
     }),
   ],
 
-  session: {
-    strategy: "jwt",
-  },
+  session: { strategy: "jwt" },
 
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role // ✅ safe, since schema enforces
+        token.role = (user as any).role
+        token.sub = (user as any).id
       }
       return token
     },
@@ -59,9 +55,19 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  pages: {
-    signIn: "/login",
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.session-token" : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+      },
+    },
   },
+
+  pages: { signIn: "/login" },
 
   secret: process.env.NEXTAUTH_SECRET,
 }

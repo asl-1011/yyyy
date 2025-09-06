@@ -1,3 +1,4 @@
+// lib/auth.ts
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { redirect } from "next/navigation"
@@ -12,19 +13,17 @@ export type SessionUser = {
   image?: string | null
 }
 
-// NextAuth session type (extended with role & id)
 export interface Session {
   user: SessionUser
   expires?: string
 }
 
-// App-level session (alias for clarity)
 export type AppSession = Session
 
-// --- Export auth options (for NextAuth) ---
+// --- Export auth options ---
 export { authOptions }
 
-// --- Get the current session ---
+// --- Get current session ---
 export async function getSession(): Promise<AppSession | null> {
   const session = (await getServerSession(authOptions)) as AppSession | null
   return session

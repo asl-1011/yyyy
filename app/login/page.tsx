@@ -1,9 +1,7 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
-import { signIn, getSession } from "next-auth/react"
+import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -25,24 +23,31 @@ export default function LoginPage() {
     setError("")
 
     try {
+      // Sign in with credentials
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        redirect: false, // We'll handle redirect manually
       })
 
       if (result?.error) {
         setError("Invalid email or password")
       } else {
-        // Check if user is admin and redirect accordingly
-        const session = await getSession()
-        if (session?.user.role === "admin") {
+        // Wait a short time to ensure session cookie is set
+        await new Promise((r) => setTimeout(r, 100))
+
+        // Fetch the current session
+        const sessionRes = await fetch("/api/auth/session")
+        const session = await sessionRes.json()
+
+        // Redirect based on role
+        if (session?.user?.role === "admin") {
           router.push("/admin")
         } else {
-          router.push("/")
+          router.push("/") // regular user goes to home page
         }
       }
-    } catch (error) {
+    } catch {
       setError("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)
@@ -58,11 +63,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+            {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

@@ -15,30 +15,63 @@ const nextConfig = {
       {
         source: "/(.*)", // apply to all routes
         headers: [
+          // Clickjacking protection
           {
             key: "X-Frame-Options",
-            value: "DENY", // prevents embedding in iframes
+            value: "DENY",
           },
           {
             key: "Content-Security-Policy",
-            value: "frame-ancestors 'none';", // modern replacement for X-Frame-Options
+            value: "frame-ancestors 'none'; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'",
           },
+          // MIME sniffing protection
           {
             key: "X-Content-Type-Options",
-            value: "nosniff", // prevents MIME type sniffing
+            value: "nosniff",
           },
+          // Legacy XSS protection (for old browsers)
           {
             key: "X-XSS-Protection",
-            value: "1; mode=block", // basic XSS protection (older browsers)
+            value: "1; mode=block",
           },
+          // Safer referrer policy
           {
             key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin", // safer referrer handling
+            value: "strict-origin-when-cross-origin",
           },
+          // Enforce HTTPS
           {
             key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload", // HSTS, requires HTTPS
+            value: "max-age=63072000; includeSubDomains; preload",
           },
+          // Cross-origin isolation headers
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+          {
+            key: "Cross-Origin-Resource-Policy",
+            value: "same-origin",
+          },
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "require-corp",
+          },
+          // Modern permissions policy (formerly Feature-Policy)
+          {
+            key: "Permissions-Policy",
+            value: "geolocation=(), camera=(), microphone=(), payment=()",
+          },
+          // Flash/Adobe cross-domain policy (extra hardening)
+          {
+            key: "X-Permitted-Cross-Domain-Policies",
+            value: "none",
+          },
+          // Clear site data on logout (optional)
+          // {
+          //   key: "Clear-Site-Data",
+          //   value: '"cache", "cookies", "storage", "executionContexts"',
+          // },
         ],
       },
     ]

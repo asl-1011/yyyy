@@ -10,41 +10,65 @@ const nextConfig = {
     unoptimized: true,
   },
 
+  // 🚫 Hide Next.js fingerprints
+  poweredByHeader: false, // removes "X-Powered-By: Next.js"
+
   async headers() {
     return [
       {
         source: "/(.*)", // apply to all routes
         headers: [
-          // Clickjacking protection
+          // 🛡️ Clickjacking protection
           {
             key: "X-Frame-Options",
-            value: "DENY",
+            value: "DENY", // never allow embedding
           },
+
+          // 🛡️ Strong Content-Security-Policy (CSP)
           {
             key: "Content-Security-Policy",
-            value: "frame-ancestors 'none'; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'",
+            value: `
+              default-src 'self';
+              script-src 'self' 'strict-dynamic' https: 'unsafe-inline';
+              style-src 'self' 'unsafe-inline' https:;
+              img-src 'self' data: https:;
+              font-src 'self' https:;
+              connect-src 'self' https: wss:;
+              media-src 'self';
+              object-src 'none';
+              base-uri 'self';
+              form-action 'self';
+              frame-ancestors 'none';
+              require-trusted-types-for 'script';
+              upgrade-insecure-requests;
+            `.replace(/\s{2,}/g, " ").trim(),
           },
-          // MIME sniffing protection
+
+          // 🛡️ MIME sniffing protection
           {
             key: "X-Content-Type-Options",
             value: "nosniff",
           },
-          // Legacy XSS protection (for old browsers)
+
+          // 🛡️ Legacy XSS protection (mainly IE/old Chrome)
           {
             key: "X-XSS-Protection",
             value: "1; mode=block",
           },
-          // Safer referrer policy
+
+          // 🛡️ Referrer Policy
           {
             key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
+            value: "no-referrer, strict-origin-when-cross-origin",
           },
-          // Enforce HTTPS
+
+          // 🛡️ HTTPS Strict Transport Security (HSTS)
           {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          // Cross-origin isolation headers
+
+          // 🛡️ Cross-Origin Isolation (prevents Spectre-style attacks)
           {
             key: "Cross-Origin-Opener-Policy",
             value: "same-origin",
@@ -57,25 +81,47 @@ const nextConfig = {
             key: "Cross-Origin-Embedder-Policy",
             value: "require-corp",
           },
-          // Modern permissions policy (formerly Feature-Policy)
+
+          // 🛡️ Restrict APIs & features
           {
             key: "Permissions-Policy",
-            value: "geolocation=(), camera=(), microphone=(), payment=()",
+            value: `
+              accelerometer=(),
+              autoplay=(),
+              camera=(),
+              clipboard-read=(),
+              clipboard-write=(),
+              display-capture=(),
+              document-domain=(),
+              encrypted-media=(),
+              fullscreen=(),
+              geolocation=(),
+              gyroscope=(),
+              magnetometer=(),
+              microphone=(),
+              midi=(),
+              payment=(),
+              usb=(),
+              wake-lock=(),
+              xr-spatial-tracking=()
+            `.replace(/\s{2,}/g, " ").trim(),
           },
-          // Flash/Adobe cross-domain policy (extra hardening)
+
+          // 🛡️ Block Adobe Flash/old plugins
           {
             key: "X-Permitted-Cross-Domain-Policies",
             value: "none",
           },
-          // Clear site data on logout (optional)
+
+          // 🛡️ Optional: Force cache/cookie clearing on logout endpoints
           // {
           //   key: "Clear-Site-Data",
           //   value: '"cache", "cookies", "storage", "executionContexts"',
           // },
         ],
       },
-    ]
+    ];
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

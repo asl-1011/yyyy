@@ -1,50 +1,66 @@
-import { notFound } from "next/navigation"
-import Image from "next/image"
-import { Navigation } from "@/components/navigation"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AddToCartButton } from "@/components/add-to-cart-button"
-import { ProductImageGallery } from "@/components/product-image-gallery"
-import { ProductVariantSelector } from "@/components/product-variant-selector"
-import { formatPrice, getStockStatus, getCategoryDisplayName } from "@/lib/utils/product"
-import { Star, Truck, Shield, RotateCcw, Award, Leaf, Clock } from "lucide-react"
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import { Navigation } from "@/components/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AddToCartButton } from "@/components/add-to-cart-button";
+import { ProductImageGallery } from "@/components/product-image-gallery";
+import { ProductVariantSelector } from "@/components/product-variant-selector";
+import {
+  formatPrice,
+  getStockStatus,
+  getCategoryDisplayName,
+} from "@/lib/utils/product";
+import { Star, Truck, Shield, RotateCcw, Award, Leaf, Clock } from "lucide-react";
+
+interface ProductPageProps {
+  params: { id: string } | Promise<{ id: string }>;
+}
 
 async function getProduct(id: string) {
   try {
     const response = await fetch(`${process.env.NEXTAUTH_URL}/api/products/${id}`, {
       cache: "no-store",
-    })
-    if (!response.ok) return null
-    return await response.json()
+    });
+    if (!response.ok) return null;
+    return await response.json();
   } catch (error) {
-    console.error("Error fetching product:", error)
-    return null
+    console.error("Error fetching product:", error);
+    return null;
   }
 }
 
 async function getRecommendations(productId: string) {
   try {
-    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/recommendations?productId=${productId}&limit=4`, {
-      cache: "no-store",
-    })
-    if (!response.ok) return []
-    return await response.json()
+    const response = await fetch(
+      `${process.env.NEXTAUTH_URL}/api/recommendations?productId=${productId}&limit=4`,
+      { cache: "no-store" }
+    );
+    if (!response.ok) return [];
+    return await response.json();
   } catch (error) {
-    console.error("Error fetching recommendations:", error)
-    return []
+    console.error("Error fetching recommendations:", error);
+    return [];
   }
 }
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const [product, recommendations] = await Promise.all([getProduct(params.id), getRecommendations(params.id)])
+export default async function ProductPage({ params }: ProductPageProps) {
+  // Ensure params is resolved
+  const { id } = await params;
 
-  if (!product) {
-    notFound()
-  }
+  const [product, recommendations] = await Promise.all([
+    getProduct(id),
+    getRecommendations(id),
+  ]);
 
-  const stockStatus = getStockStatus(product.stock)
-  const primaryImage = product.images?.find((img: any) => img.is_primary) || product.images?.[0]
+  if (!product) notFound();
+
+  const stockStatus = getStockStatus(product.stock);
+  const primaryImage = product.images?.find((img: any) => img.is_primary) || product.images?.[0];
+
+  const getProductImage = (p: any) =>
+    p.image_url || p.images?.find((img: any) => img.is_primary)?.url || p.images?.[0]?.url || "/placeholder.svg";
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,17 +68,19 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-2 gap-12">
+          {/* Product Images */}
           <div className="space-y-4">
             {product.images && product.images.length > 0 ? (
               <ProductImageGallery images={product.images} productName={product.name} />
             ) : (
               <div className="relative">
                 <Image
-                  src={product.image_url || "/placeholder.svg"}
+                  src={getProductImage(product)}
                   alt={product.name}
                   width={600}
                   height={600}
                   className="w-full h-96 lg:h-[500px] object-cover rounded-lg"
+                  priority
                 />
                 {stockStatus.status === "out-of-stock" && (
                   <Badge variant="destructive" className="absolute top-4 right-4">
@@ -73,9 +91,10 @@ export default async function ProductPage({ params }: { params: { id: string } }
             )}
           </div>
 
+          {/* Product Details */}
           <div className="space-y-6">
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="outline">{getCategoryDisplayName(product.category)}</Badge>
                 {product.certifications?.map((cert: string) => (
                   <Badge key={cert} variant="secondary" className="bg-green-100 text-green-800">
@@ -86,7 +105,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
               </div>
 
               <h1 className="text-3xl font-bold text-foreground">{product.name}</h1>
-
               {product.origin && <p className="text-sm text-muted-foreground">Origin: {product.origin}</p>}
 
               <div className="flex items-center gap-4">
@@ -99,13 +117,15 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-medium ${stockStatus.color}`}>{stockStatus.message}</span>
-              </div>
+              <span className={`text-sm font-medium ${stockStatus.color}`}>{stockStatus.message}</span>
             </div>
 
             {product.variants && product.variants.length > 0 && (
-              <ProductVariantSelector variants={product.variants} productId={product._id} productName={product.name} />
+              <ProductVariantSelector
+                variants={product.variants}
+                productId={product._id}
+                productName={product.name}
+              />
             )}
 
             <div className="space-y-4">
@@ -126,14 +146,12 @@ export default async function ProductPage({ params }: { params: { id: string } }
               </div>
             )}
 
-            <div className="space-y-4">
-              <AddToCartButton
-                productId={product._id}
-                productName={product.name}
-                stock={product.stock}
-                className="w-full lg:w-auto"
-              />
-            </div>
+            <AddToCartButton
+              productId={product._id}
+              productName={product.name}
+              stock={product.stock}
+              className="w-full lg:w-auto"
+            />
 
             {/* Enhanced Features */}
             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-border">
@@ -163,6 +181,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           </div>
         </div>
 
+        {/* Tabs */}
         <div className="mt-12">
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
@@ -172,57 +191,53 @@ export default async function ProductPage({ params }: { params: { id: string } }
               <TabsTrigger value="usage">Usage</TabsTrigger>
             </TabsList>
 
+            {/* Details */}
             <TabsContent value="details" className="mt-6">
               <Card>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {product.detailed_description && (
+                <CardContent className="p-6 space-y-4">
+                  {product.detailed_description && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Detailed Description</h3>
+                      <p className="text-muted-foreground leading-relaxed">{product.detailed_description}</p>
+                    </div>
+                  )}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {product.origin && (
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Detailed Description</h3>
-                        <p className="text-muted-foreground leading-relaxed">{product.detailed_description}</p>
+                        <h4 className="font-medium mb-1">Origin</h4>
+                        <p className="text-sm text-muted-foreground">{product.origin}</p>
                       </div>
                     )}
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {product.origin && (
-                        <div>
-                          <h4 className="font-medium mb-1">Origin</h4>
-                          <p className="text-sm text-muted-foreground">{product.origin}</p>
+                    {product.shelf_life && (
+                      <div>
+                        <h4 className="font-medium mb-1">Shelf Life</h4>
+                        <p className="text-sm text-muted-foreground">{product.shelf_life}</p>
+                      </div>
+                    )}
+                    {product.storage_instructions && (
+                      <div>
+                        <h4 className="font-medium mb-1">Storage</h4>
+                        <p className="text-sm text-muted-foreground">{product.storage_instructions}</p>
+                      </div>
+                    )}
+                    {product.certifications && product.certifications.length > 0 && (
+                      <div>
+                        <h4 className="font-medium mb-1">Certifications</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {product.certifications.map((cert: string) => (
+                            <Badge key={cert} variant="outline" className="text-xs">
+                              {cert}
+                            </Badge>
+                          ))}
                         </div>
-                      )}
-
-                      {product.shelf_life && (
-                        <div>
-                          <h4 className="font-medium mb-1">Shelf Life</h4>
-                          <p className="text-sm text-muted-foreground">{product.shelf_life}</p>
-                        </div>
-                      )}
-
-                      {product.storage_instructions && (
-                        <div>
-                          <h4 className="font-medium mb-1">Storage</h4>
-                          <p className="text-sm text-muted-foreground">{product.storage_instructions}</p>
-                        </div>
-                      )}
-
-                      {product.certifications && product.certifications.length > 0 && (
-                        <div>
-                          <h4 className="font-medium mb-1">Certifications</h4>
-                          <div className="flex flex-wrap gap-1">
-                            {product.certifications.map((cert: string) => (
-                              <Badge key={cert} variant="outline" className="text-xs">
-                                {cert}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
+            {/* Nutrition */}
             <TabsContent value="nutrition" className="mt-6">
               <Card>
                 <CardContent className="p-6">
@@ -269,21 +284,19 @@ export default async function ProductPage({ params }: { params: { id: string } }
               </Card>
             </TabsContent>
 
+            {/* Benefits */}
             <TabsContent value="benefits" className="mt-6">
               <Card>
                 <CardContent className="p-6">
                   {product.health_benefits && product.health_benefits.length > 0 ? (
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Health Benefits</h3>
-                      <ul className="space-y-2">
-                        {product.health_benefits.map((benefit: string, index: number) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <Leaf className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-muted-foreground">{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <ul className="space-y-2">
+                      {product.health_benefits.map((benefit: string, index: number) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <Leaf className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-muted-foreground">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
                     <p className="text-muted-foreground">Health benefits information not available for this product.</p>
                   )}
@@ -291,14 +304,12 @@ export default async function ProductPage({ params }: { params: { id: string } }
               </Card>
             </TabsContent>
 
+            {/* Usage */}
             <TabsContent value="usage" className="mt-6">
               <Card>
                 <CardContent className="p-6">
                   {product.usage_instructions ? (
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Usage Instructions</h3>
-                      <p className="text-muted-foreground leading-relaxed">{product.usage_instructions}</p>
-                    </div>
+                    <p className="text-muted-foreground leading-relaxed">{product.usage_instructions}</p>
                   ) : (
                     <p className="text-muted-foreground">Usage instructions not available for this product.</p>
                   )}
@@ -313,35 +324,43 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-foreground mb-8">You might also like</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {recommendations.map((product: any) => (
-                <Card key={product._id} className="group hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="space-y-4">
-                      <Image
-                        src={product.image_url || "/placeholder.svg"}
-                        alt={product.name}
-                        width={250}
-                        height={200}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      <div className="space-y-2">
-                        <h3 className="font-semibold text-foreground line-clamp-2">{product.name}</h3>
-                        <span className="text-lg font-bold text-primary">{formatPrice(product.price)}</span>
+              {recommendations.map((prod: any) => {
+                const stock = getStockStatus(prod.stock);
+                return (
+                  <Card key={prod._id} className="group hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="space-y-4">
+                        <div className="relative">
+                          <Image
+                            src={getProductImage(prod)}
+                            alt={prod.name}
+                            width={250}
+                            height={200}
+                            className="w-full h-48 object-cover rounded-lg"
+                            loading="lazy"
+                          />
+                          {stock.status === "out-of-stock" && (
+                            <Badge variant="destructive" className="absolute top-2 right-2">
+                              Out of Stock
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <h3 className="font-semibold text-foreground line-clamp-2">{prod.name}</h3>
+                          <span className="text-lg font-bold text-primary">{formatPrice(prod.price)}</span>
+                        </div>
+
+                        <AddToCartButton productId={prod._id} productName={prod.name} stock={prod.stock} className="w-full" />
                       </div>
-                      <AddToCartButton
-                        productId={product._id}
-                        productName={product.name}
-                        stock={product.stock}
-                        className="w-full"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

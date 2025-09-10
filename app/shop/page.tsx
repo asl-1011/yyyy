@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Navigation } from "@/components/navigation";
-import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,62 +15,58 @@ import {
 import { Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const Shop = () => {
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  stock: number;
+  images?: Array<{ url: string; alt?: string; is_primary?: boolean }>;
+  rating?: number;
+  reviewCount?: number;
+}
+
+interface ShopProps {
+  initialProducts: Product[];
+}
+
+const Shop = ({ initialProducts }: ShopProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("name");
-  const [cartItems, setCartItems] = useState<Record<string, number>>({});
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch products from API
+  // Client-side filtering & sorting
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const params = new URLSearchParams({
-          category: selectedCategory,
-          search: searchTerm,
-          sortBy:
-            sortBy === "name"
-              ? "name"
-              : sortBy.startsWith("price")
-              ? "price"
-              : "createdAt",
-          sortOrder: sortBy === "price-low" ? "asc" : "desc",
-        });
+    setLoading(true);
 
-        const res = await fetch(`/api/products?${params.toString()}`);
-        const data = await res.json();
+    let filtered = [...initialProducts];
 
-        if (res.ok) {
-          setProducts(data.products || []);
-        } else {
-          console.error(data.error);
-        }
-      } catch (err) {
-        console.error("Error fetching products:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter((p) => p.category === selectedCategory);
+    }
 
-    fetchProducts();
-  }, [searchTerm, selectedCategory, sortBy]);
+    if (searchTerm.trim() !== "") {
+      filtered = filtered.filter((p) =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
 
-  const handleAddToCart = (productId: string) => {
-    setCartItems((prev) => ({
-      ...prev,
-      [productId]: (prev[productId] || 0) + 1,
-    }));
-  };
+    switch (sortBy) {
+      case "price-low":
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case "price-high":
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      default:
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+    }
 
-  const handleRemoveFromCart = (productId: string) => {
-    setCartItems((prev) => ({
-      ...prev,
-      [productId]: Math.max(0, (prev[productId] || 0) - 1),
-    }));
-  };
+    setFilteredProducts(filtered);
+    setLoading(false);
+  }, [searchTerm, selectedCategory, sortBy, initialProducts]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,8 +85,7 @@ const Shop = () => {
               TastyDash Shop
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Discover our curated selection of premium spices, dry fruits, and
-              teas
+              Discover our curated selection of premium spices, dry fruits, and teas
             </p>
           </motion.div>
 
@@ -137,7 +132,7 @@ const Shop = () => {
             transition={{ delay: 0.5 }}
           >
             <div className="text-sm">
-              {loading ? "Loading..." : `${products.length} products`}
+              {loading ? "Loading..." : `${filteredProducts.length} products`}
             </div>
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[160px]">
@@ -158,36 +153,61 @@ const Shop = () => {
             animate="visible"
             variants={{
               hidden: {},
-              visible: {
-                transition: {
-                  staggerChildren: 0.08,
-                },
-              },
+              visible: { transition: { staggerChildren: 0.08 } },
             }}
           >
             <AnimatePresence>
-              {!loading &&
-                products.map((product) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ProductCard
-                      product={product}
-                      quantity={cartItems[product.id] || 0}
-                      onAdd={() => handleAddToCart(product.id)}
-                      onRemove={() => handleRemoveFromCart(product.id)}
+              {loading
+                ? Array.from({ length: 8 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-80 bg-muted/50 animate-pulse rounded-xl"
                     />
-                  </motion.div>
-                ))}
+                  ))
+                : filteredProducts.map((product, idx) => {
+                    // Pick primary image
+                    const images = Array.isArray(product.images) ? product.images : [];
+                    const primaryImage =
+                      images.find((img) => img.is_primary) || images[0] || {
+                        url: "/placeholder.svg",
+                        alt: product.name,
+                      };
+
+                    return (
+                      <motion.div
+                        key={product.id}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="bg-card rounded-xl overflow-hidden shadow hover:shadow-md transition">
+                          <div className="relative aspect-square w-full">
+                            <Image
+                              src={`${primaryImage.url}?f_auto,q_auto,w=400,h=400`}
+                              alt={primaryImage.alt || product.name}
+                              fill
+                              className="object-cover transition-all duration-500 hover:scale-105"
+                              priority={idx === 0} // only first product is LCP image
+                            />
+                          </div>
+                          <div className="p-3 space-y-2">
+                            <h3 className="text-sm font-semibold line-clamp-2">
+                              {product.name}
+                            </h3>
+                            <div className="text-base font-bold text-foreground">
+                              ₹{product.price.toLocaleString("en-IN")}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
             </AnimatePresence>
           </motion.div>
 
           {/* No Results */}
-          {!loading && products.length === 0 && (
+          {!loading && filteredProducts.length === 0 && (
             <motion.div
               className="text-center py-16"
               initial={{ opacity: 0 }}

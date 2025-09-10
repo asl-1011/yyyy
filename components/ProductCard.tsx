@@ -6,6 +6,7 @@ import { Star, Plus, Minus, ShoppingCart } from "lucide-react";
 import { useCart } from "@/components/cart-context"; // adjust path if needed
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 interface Product {
   id: string;
@@ -34,10 +35,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const { cart, addToCart, updateQuantity, loading } = useCart();
   const { toast } = useToast();
 
-  // Ensure images is always a safe array
   const images = Array.isArray(product.images) ? product.images : [];
-
-  // Pick primary image or fallback
   const primaryImage =
     images.find((img) => img.is_primary) ||
     images[0] || {
@@ -45,7 +43,6 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       alt: product.name,
     };
 
-  // find current cart item
   const cartItem = cart?.products.find(
     (item) => item.productId._id === product.id
   );
@@ -117,12 +114,14 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <CardContent className="p-0">
         {/* Product Image */}
         <div className="relative bg-gradient-to-br from-background/50 to-muted/30">
-          <div className="aspect-square overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-background to-muted/20 ring-1 ring-border/20">
-            <img
-              src={primaryImage.url}
+          <div className="aspect-square overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-background to-muted/20 ring-1 ring-border/20 relative">
+            <Image
+              src={`${primaryImage.url}?f_auto,q_auto,w=400,h=400`}
               alt={primaryImage.alt || product.name}
-              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-              loading="lazy"
+              fill
+              className="object-cover transition-all duration-500 group-hover:scale-105 rounded-xl sm:rounded-2xl"
+              sizes="(max-width: 640px) 100vw, 357px"
+              priority={false}
             />
           </div>
 
@@ -135,7 +134,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
           {/* Stock Badges */}
           {product.stock <= 5 && product.stock > 0 && (
-            <div className="absolute top-2 right-2 px-2 py-0.5 sm:px-3 sm:py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] sm:text-xs font-medium rounded-full backdrop-blur-sm animate-pulse">
+            <div className="absolute top-2 right-2 px-2 py-0.5 sm:px-3 sm:py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] sm:text-xs font-medium rounded-full backdrop-blur-sm">
               Only {product.stock} left
             </div>
           )}
@@ -178,7 +177,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               {(product.rating || 4.2).toFixed(1)}
             </span>
             <span className="text-[10px] sm:text-xs text-muted-foreground">
-              ({product.reviewCount || Math.floor(Math.random() * 100) + 10})
+              ({product.reviewCount ?? 0})
             </span>
           </div>
 
@@ -196,7 +195,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               </span>
             </div>
             <div className="text-[10px] sm:text-xs text-primary font-medium">
-              ✨ FREE delivery • Prime eligible
+              <span aria-hidden="true">✨</span> FREE delivery • Prime eligible
             </div>
           </div>
 
@@ -213,9 +212,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               </Button>
             ) : (
               <div className="flex gap-2">
-                {/* Quantity controls */}
                 <div className="flex items-center bg-muted/50 rounded-lg sm:rounded-xl overflow-hidden border border-border/30">
                   <Button
+                    aria-label="Decrease quantity"
                     onClick={() => handleUpdateQuantity(currentQuantity - 1)}
                     variant="ghost"
                     size="icon"
@@ -228,6 +227,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                     {currentQuantity}
                   </span>
                   <Button
+                    aria-label="Increase quantity"
                     onClick={() => handleUpdateQuantity(currentQuantity + 1)}
                     variant="ghost"
                     size="icon"

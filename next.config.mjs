@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -10,26 +12,25 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  // 🚫 Hide Next.js fingerprints
-  poweredByHeader: false, // removes "X-Powered-By: Next.js"
+  poweredByHeader: false,
 
   async headers() {
     return [
       {
-        source: "/(.*)", // apply to all routes
+        source: "/(.*)",
         headers: [
           // 🛡️ Clickjacking protection
           {
             key: "X-Frame-Options",
-            value: "DENY", // never allow embedding
+            value: "DENY",
           },
 
-          // 🛡️ Strong Content-Security-Policy (CSP)
+          // 🛡️ CSP
           {
             key: "Content-Security-Policy",
             value: `
               default-src 'self';
-              script-src 'self' 'strict-dynamic' https: 'unsafe-inline';
+              script-src 'self' ${isDev ? "'unsafe-eval' 'unsafe-inline'" : "'unsafe-inline'"} https: http:;
               style-src 'self' 'unsafe-inline' https:;
               img-src 'self' data: https:;
               font-src 'self' https:;
@@ -39,50 +40,22 @@ const nextConfig = {
               base-uri 'self';
               form-action 'self';
               frame-ancestors 'none';
-              require-trusted-types-for 'script';
               upgrade-insecure-requests;
             `.replace(/\s{2,}/g, " ").trim(),
           },
 
-          // 🛡️ MIME sniffing protection
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-
-          // 🛡️ Legacy XSS protection (mainly IE/old Chrome)
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-
-          // 🛡️ Referrer Policy
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-XSS-Protection", value: "1; mode=block" },
           {
             key: "Referrer-Policy",
             value: "no-referrer, strict-origin-when-cross-origin",
           },
-
-          // 🛡️ HTTPS Strict Transport Security (HSTS)
           {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-
-          // 🛡️ Cross-Origin Isolation (prevents Spectre-style attacks)
-          {
-            key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
-          },
-          {
-            key: "Cross-Origin-Resource-Policy",
-            value: "same-origin",
-          },
-          {
-            key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
-          },
-
-          // 🛡️ Restrict APIs & features
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
           {
             key: "Permissions-Policy",
             value: `
@@ -106,18 +79,10 @@ const nextConfig = {
               xr-spatial-tracking=()
             `.replace(/\s{2,}/g, " ").trim(),
           },
-
-          // 🛡️ Block Adobe Flash/old plugins
           {
             key: "X-Permitted-Cross-Domain-Policies",
             value: "none",
           },
-
-          // 🛡️ Optional: Force cache/cookie clearing on logout endpoints
-          // {
-          //   key: "Clear-Site-Data",
-          //   value: '"cache", "cookies", "storage", "executionContexts"',
-          // },
         ],
       },
     ];

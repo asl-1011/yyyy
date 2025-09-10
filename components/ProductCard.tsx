@@ -41,7 +41,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const primaryImage =
     images.find((img) => img.is_primary) ||
     images[0] || {
-      url: "/placeholder.png",
+      url: "/placeholder.svg",
       alt: product.name,
     };
 

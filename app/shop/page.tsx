@@ -89,7 +89,8 @@ const Shop = () => {
               TastyDash Shop
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Discover our curated selection of premium spices, dry fruits, and teas
+              Discover our curated selection of premium spices, dry fruits, and
+              teas
             </p>
           </motion.div>
 

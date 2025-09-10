@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Head from "next/head";
 import { Navigation } from "@/components/navigation";
 import Hero from "@/components/hero";
 import { Testimonials } from "@/components/testimonials";
@@ -85,11 +86,10 @@ const staggerContainer: Variants = {
   },
 };
 
-// ✅ Team Section (Carousel on mobile, grid on desktop)
+// ✅ Team Section
 function TeamSection() {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center" });
 
-  // Auto-play
   useEffect(() => {
     if (!emblaApi) return;
     const interval = setInterval(() => emblaApi.scrollNext(), 2000);
@@ -99,7 +99,6 @@ function TeamSection() {
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Heading */}
         <motion.div
           className="text-center mb-16"
           initial="hidden"
@@ -107,16 +106,13 @@ function TeamSection() {
           viewport={{ once: false, amount: 0.3 }}
           variants={fadeInUp}
         >
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Meet Our Team
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Meet Our Team</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Passionate individuals working together to create extraordinary
             experiences
           </p>
         </motion.div>
 
-        {/* 👉 Mobile Carousel */}
         <div className="block md:hidden">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex">
@@ -129,7 +125,6 @@ function TeamSection() {
           </div>
         </div>
 
-        {/* 👉 Desktop Grid */}
         <motion.div
           className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-8"
           initial="hidden"
@@ -152,20 +147,99 @@ function TeamSection() {
   );
 }
 
+// ✅ Popular Spices Section
+function PopularSpices() {
+  const spices = [
+  { name: "Turmeric Powder", image: "https://source.unsplash.com/400x400/?turmeric" },
+  { name: "Cardamom", image: "https://source.unsplash.com/400x400/?cardamom" },
+  { name: "Black Pepper", image: "https://source.unsplash.com/400x400/?black-pepper" },
+  { name: "Cumin Seeds", image: "https://source.unsplash.com/400x400/?cumin" },
+];
+
+  return (
+    <section className="py-16 bg-white">
+      <div className="container mx-auto px-4">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-8">
+          Popular Spices
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {spices.map((spice) => (
+            <div key={spice.name} className="text-center">
+              <img
+                src={spice.image}
+                alt={spice.name}
+                className="w-full h-40 object-cover rounded-lg shadow"
+              />
+              <h3 className="mt-2 text-sm font-semibold text-gray-800">{spice.name}</h3>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 500], [0, -50]); // subtle parallax
+  const heroY = useTransform(scrollY, [0, 500], [0, -50]);
 
   return (
     <div className="min-h-screen bg-white">
+      {/* ✅ SEO Head */}
+      <Head>
+        <title>Wanted Spices | Buy Authentic Indian Spices, Dry Fruits & Tea Online</title>
+        <meta
+          name="description"
+          content="Wanted Spices brings you premium Indian spices, dry fruits, and teas. Hand-picked, 100% natural, and delivered fresh to your doorstep."
+        />
+        <meta
+          name="keywords"
+          content="Wanted Spices, buy spices online, Indian spices, dry fruits, premium tea, organic spices"
+        />
+        <meta name="author" content="Wanted Spices" />
+
+        {/* Open Graph */}
+        <meta property="og:title" content="Wanted Spices | Premium Indian Spices & Dry Fruits" />
+        <meta
+          property="og:description"
+          content="Buy authentic turmeric, cardamom, cumin, black pepper, and more from Wanted Spices."
+        />
+        <meta property="og:image" content="/images/og-image.jpg" />
+        <meta property="og:url" content="https://spices-beige.vercel.app" />
+        <meta property="og:type" content="website" />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Wanted Spices",
+              url: "https://spices-beige.vercel.app",
+              logo: "https://spices-beige.vercel.app/logo.png",
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone: "+91-7510616989",
+                contactType: "customer service",
+              },
+            }),
+          }}
+        />
+      </Head>
+
       <Navigation />
 
-      {/* Hero with Parallax */}
+      {/* Hero */}
       <motion.div style={{ y: heroY }}>
         <Hero />
+
       </motion.div>
 
-      {/* ✅ Features Section (Compact Version on Mobile) */}
+      {/* Features */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <motion.div
@@ -175,12 +249,9 @@ export default function HomePage() {
             viewport={{ once: false, amount: 0.3 }}
             variants={fadeInUp}
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-              Why Choose Us
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Why Choose Us</h2>
             <p className="text-sm md:text-lg text-gray-600 max-w-2xl mx-auto">
-              We deliver exceptional quality and service that exceeds
-              expectations
+              We deliver exceptional quality and service that exceeds expectations
             </p>
           </motion.div>
 
@@ -232,19 +303,18 @@ export default function HomePage() {
                 >
                   <item.icon className={`h-6 w-6 ${item.color}`} />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900">
-                  {item.title}
-                </h3>
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  {item.desc}
-                </p>
+                <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
+                <p className="text-xs text-gray-600 leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* ✅ Team Section with Carousel */}
+      {/* Popular Spices */}
+      <PopularSpices />
+
+      {/* Team */}
       <TeamSection />
 
       <Testimonials />

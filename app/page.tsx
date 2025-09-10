@@ -150,10 +150,10 @@ function TeamSection() {
 // ✅ Popular Spices Section
 function PopularSpices() {
   const spices = [
-  { name: "Turmeric Powder", image: "https://source.unsplash.com/400x400/?turmeric" },
-  { name: "Cardamom", image: "https://source.unsplash.com/400x400/?cardamom" },
-  { name: "Black Pepper", image: "https://source.unsplash.com/400x400/?black-pepper" },
-  { name: "Cumin Seeds", image: "https://source.unsplash.com/400x400/?cumin" },
+  { name: "Turmeric Powder", image: "/termuric.webp" },
+  { name: "Cardamom", image: "/Cardamom_ambiente.webp" },
+  { name: "Black Pepper", image: "/pepper.webp" },
+  { name: "Tea Powder", image: "chai_tea.webp" },
 ];
 
   return (

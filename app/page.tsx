@@ -9,10 +9,18 @@ import { SocialProof } from "@/components/social-proof";
 import Footer from "@/components/footer";
 import { Award, Truck, Shield, Star, ArrowUp } from "lucide-react";
 import ProfileCard from "@/components/ProfileCard";
-import { motion, useScroll, useTransform, Variants } from "framer-motion";
+import PopularSpices from "@/components/PopularSpicesArc";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  Variants,
+} from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 
-// ✅ Scroll to Top Button
+/* -------------------------------
+   Scroll To Top Button
+-------------------------------- */
 function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -43,7 +51,9 @@ function ScrollToTop() {
   );
 }
 
-// ✅ Team Members Data
+/* -------------------------------
+   Team Section
+-------------------------------- */
 const teamMembers = [
   {
     role: "CEO",
@@ -68,7 +78,6 @@ const teamMembers = [
   },
 ];
 
-// ✅ Variants
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
@@ -86,9 +95,11 @@ const staggerContainer: Variants = {
   },
 };
 
-// ✅ Team Section
 function TeamSection() {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center" });
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    align: "center",
+  });
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -106,13 +117,16 @@ function TeamSection() {
           viewport={{ once: false, amount: 0.3 }}
           variants={fadeInUp}
         >
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Meet Our Team</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Meet Our Team
+          </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Passionate individuals working together to create extraordinary
             experiences
           </p>
         </motion.div>
 
+        {/* Mobile Carousel */}
         <div className="block md:hidden">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex">
@@ -125,6 +139,7 @@ function TeamSection() {
           </div>
         </div>
 
+        {/* Desktop Grid */}
         <motion.div
           className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-8"
           initial="hidden"
@@ -147,112 +162,19 @@ function TeamSection() {
   );
 }
 
-// ✅ Popular Spices Section with SEO + Animation
-function PopularSpices() {
-  const spices = [
-    { name: "Turmeric Powder", image: "/termuric.webp", desc: "Rich in curcumin, perfect for cooking and health benefits." },
-    { name: "Cardamom", image: "/Cardamom_ambiente.webp", desc: "Aromatic spice often used in Indian desserts and teas." },
-    { name: "Black Pepper", image: "/pepper.webp", desc: "Bold and spicy, known as the 'King of Spices'." },
-    { name: "Tea Powder", image: "/chai_tea.webp", desc: "Strong, refreshing, and perfect for masala chai." },
-  ];
-
-  return (
-    <section 
-      className="py-16 bg-white"
-      aria-labelledby="popular-spices-heading"
-    >
-      <div className="container mx-auto px-4">
-        {/* ✅ Section Heading Animation */}
-        <motion.h2
-          id="popular-spices-heading"
-          className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-8"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          viewport={{ once: true }}
-        >
-          Popular Spices
-        </motion.h2>
-
-        {/* ✅ Spice Grid Animation */}
-        <motion.div 
-          className="grid grid-cols-2 md:grid-cols-4 gap-6"
-          initial="hidden"
-          whileInView="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: { 
-              opacity: 1, 
-              transition: { staggerChildren: 0.15 } 
-            },
-          }}
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          {spices.map((spice, index) => (
-            <motion.article
-              key={spice.name}
-              className="text-center group"
-              variants={{
-                hidden: { opacity: 0, y: 40 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-              }}
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              aria-label={spice.name}
-              itemScope
-              itemType="https://schema.org/Product"
-            >
-              <img
-                src={spice.image}
-                alt={`${spice.name} - ${spice.desc}`}
-                loading="lazy"
-                className="w-full h-40 object-cover rounded-lg shadow group-hover:shadow-lg transition-shadow"
-                itemProp="image"
-              />
-              <h3 
-                className="mt-2 text-sm font-semibold text-gray-800" 
-                itemProp="name"
-              >
-                {spice.name}
-              </h3>
-              <p className="text-xs text-gray-600" itemProp="description">
-                {spice.desc}
-              </p>
-            </motion.article>
-          ))}
-        </motion.div>
-      </div>
-
-      {/* ✅ Structured Data for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ItemList",
-            itemListElement: spices.map((spice, i) => ({
-              "@type": "ListItem",
-              position: i + 1,
-              name: spice.name,
-              image: spice.image,
-              description: spice.desc,
-            })),
-          }),
-        }}
-      />
-    </section>
-  );
-}
-
+/* -------------------------------
+   HomePage
+-------------------------------- */
 export default function HomePage() {
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 500], [0, -50]);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ✅ SEO Head */}
       <Head>
-        <title>Wanted Spices | Buy Authentic Indian Spices, Dry Fruits & Tea Online</title>
+        <title>
+          Wanted Spices | Buy Authentic Indian Spices, Dry Fruits & Tea Online
+        </title>
         <meta
           name="description"
           content="Wanted Spices brings you premium Indian spices, dry fruits, and teas. Hand-picked, 100% natural, and delivered fresh to your doorstep."
@@ -264,7 +186,10 @@ export default function HomePage() {
         <meta name="author" content="Wanted Spices" />
 
         {/* Open Graph */}
-        <meta property="og:title" content="Wanted Spices | Premium Indian Spices & Dry Fruits" />
+        <meta
+          property="og:title"
+          content="Wanted Spices | Premium Indian Spices & Dry Fruits"
+        />
         <meta
           property="og:description"
           content="Buy authentic turmeric, cardamom, cumin, black pepper, and more from Wanted Spices."
@@ -298,7 +223,6 @@ export default function HomePage() {
 
       <Navigation />
 
-      {/* Hero */}
       <motion.div style={{ y: heroY }}>
         <Hero />
       </motion.div>
@@ -313,9 +237,12 @@ export default function HomePage() {
             viewport={{ once: false, amount: 0.3 }}
             variants={fadeInUp}
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Why Choose Us</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+              Why Choose Us
+            </h2>
             <p className="text-sm md:text-lg text-gray-600 max-w-2xl mx-auto">
-              We deliver exceptional quality and service that exceeds expectations
+              We deliver exceptional quality and service that exceeds
+              expectations
             </p>
           </motion.div>
 
@@ -367,15 +294,19 @@ export default function HomePage() {
                 >
                   <item.icon className={`h-6 w-6 ${item.color}`} />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
-                <p className="text-xs text-gray-600 leading-relaxed">{item.desc}</p>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  {item.title}
+                </h3>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  {item.desc}
+                </p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Popular Spices */}
+      {/* ✅ Semi-circle Popular Spices (from separate file) */}
       <PopularSpices />
 
       {/* Team */}

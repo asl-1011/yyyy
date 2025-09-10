@@ -147,34 +147,99 @@ function TeamSection() {
   );
 }
 
-// ✅ Popular Spices Section
+// ✅ Popular Spices Section with SEO + Animation
 function PopularSpices() {
   const spices = [
-  { name: "Turmeric Powder", image: "/termuric.webp" },
-  { name: "Cardamom", image: "/Cardamom_ambiente.webp" },
-  { name: "Black Pepper", image: "/pepper.webp" },
-  { name: "Tea Powder", image: "chai_tea.webp" },
-];
+    { name: "Turmeric Powder", image: "/termuric.webp", desc: "Rich in curcumin, perfect for cooking and health benefits." },
+    { name: "Cardamom", image: "/Cardamom_ambiente.webp", desc: "Aromatic spice often used in Indian desserts and teas." },
+    { name: "Black Pepper", image: "/pepper.webp", desc: "Bold and spicy, known as the 'King of Spices'." },
+    { name: "Tea Powder", image: "/chai_tea.webp", desc: "Strong, refreshing, and perfect for masala chai." },
+  ];
 
   return (
-    <section className="py-16 bg-white">
+    <section 
+      className="py-16 bg-white"
+      aria-labelledby="popular-spices-heading"
+    >
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-8">
+        {/* ✅ Section Heading Animation */}
+        <motion.h2
+          id="popular-spices-heading"
+          className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-8"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true }}
+        >
           Popular Spices
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {spices.map((spice) => (
-            <div key={spice.name} className="text-center">
+        </motion.h2>
+
+        {/* ✅ Spice Grid Animation */}
+        <motion.div 
+          className="grid grid-cols-2 md:grid-cols-4 gap-6"
+          initial="hidden"
+          whileInView="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { 
+              opacity: 1, 
+              transition: { staggerChildren: 0.15 } 
+            },
+          }}
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          {spices.map((spice, index) => (
+            <motion.article
+              key={spice.name}
+              className="text-center group"
+              variants={{
+                hidden: { opacity: 0, y: 40 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+              }}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              aria-label={spice.name}
+              itemScope
+              itemType="https://schema.org/Product"
+            >
               <img
                 src={spice.image}
-                alt={spice.name}
-                className="w-full h-40 object-cover rounded-lg shadow"
+                alt={`${spice.name} - ${spice.desc}`}
+                loading="lazy"
+                className="w-full h-40 object-cover rounded-lg shadow group-hover:shadow-lg transition-shadow"
+                itemProp="image"
               />
-              <h3 className="mt-2 text-sm font-semibold text-gray-800">{spice.name}</h3>
-            </div>
+              <h3 
+                className="mt-2 text-sm font-semibold text-gray-800" 
+                itemProp="name"
+              >
+                {spice.name}
+              </h3>
+              <p className="text-xs text-gray-600" itemProp="description">
+                {spice.desc}
+              </p>
+            </motion.article>
           ))}
-        </div>
+        </motion.div>
       </div>
+
+      {/* ✅ Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            itemListElement: spices.map((spice, i) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              name: spice.name,
+              image: spice.image,
+              description: spice.desc,
+            })),
+          }),
+        }}
+      />
     </section>
   );
 }
@@ -236,7 +301,6 @@ export default function HomePage() {
       {/* Hero */}
       <motion.div style={{ y: heroY }}>
         <Hero />
-
       </motion.div>
 
       {/* Features */}

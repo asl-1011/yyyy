@@ -1,3 +1,4 @@
+//app/product/[id]/page.tsx
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Navigation } from "@/components/navigation";
@@ -20,7 +21,7 @@ interface ProductPageProps {
 
 async function getProduct(id: string) {
   try {
-    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/products/${id}`, {
+    const response = await fetch(`https://spices-beige.vercel.app/api/products/${id}`, {
       cache: "no-store",
     });
     if (!response.ok) return null;
@@ -34,7 +35,7 @@ async function getProduct(id: string) {
 async function getRecommendations(productId: string) {
   try {
     const response = await fetch(
-      `${process.env.NEXTAUTH_URL}/api/recommendations?productId=${productId}&limit=4`,
+      `https://spices-beige.vercel.app/api/recommendations?productId=${productId}&limit=4`,
       { cache: "no-store" }
     );
     if (!response.ok) return [];
